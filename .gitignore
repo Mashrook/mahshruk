@@ -1,0 +1,34 @@
+# OS/Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Node
+node_modules/
+**/node_modules/
+**/.vite/
+**/dist/
+**/dist-ssr/
+**/*.local
+
+# Gradle/Android
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Env
+.env
+*.env
+
+# Coverage
+coverage/
