@@ -1,0 +1,22 @@
+project_id = "frkdmxdfalohpmzlnsth"
+
+[functions.public-config]
+verify_jwt = false
+
+[functions.run-cleanup]
+verify_jwt = false
+
+[functions.health]
+verify_jwt = false
+
+[functions.billing-checkout]
+verify_jwt = false
+
+[functions.billing-subscription]
+verify_jwt = false
+
+[functions.billing-invoices]
+verify_jwt = false
+
+[functions.amadeus]
+verify_jwt = false

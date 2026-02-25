@@ -1,0 +1,178 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800;900&family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mashroky Travel Platform - Blue + Purple + Cyan Vibrant Theme */
+/* Colors: #2323FF, #24AEFF, #C04AFF, #7E3DFF */
+
+@layer base {
+  :root {
+    --background: 220 40% 13%;
+    --foreground: 210 20% 90%;
+    --card: 220 35% 16%;
+    --card-foreground: 210 20% 90%;
+    --popover: 220 38% 15%;
+    --popover-foreground: 210 20% 90%;
+    --primary: 40 95% 55%;
+    --primary-foreground: 220 40% 10%;
+    --primary-glow: 35 90% 50%;
+    --secondary: 197 100% 57%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 30% 18%;
+    --muted-foreground: 210 15% 55%;
+    --accent: 40 95% 55%;
+    --accent-foreground: 220 40% 10%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 72% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 197 100% 57%;
+    --info-foreground: 0 0% 100%;
+    --border: 220 25% 20%;
+    --input: 220 30% 18%;
+    --ring: 40 95% 55%;
+    --radius: 0.75rem;
+
+    --gradient-primary: linear-gradient(135deg, hsl(40 95% 55%), hsl(35 90% 45%));
+    --gradient-primary-hover: linear-gradient(135deg, hsl(40 95% 60%), hsl(35 90% 50%));
+    --gradient-secondary: linear-gradient(135deg, hsl(197 100% 57%), hsl(207 100% 52%));
+    --gradient-hero: linear-gradient(180deg, hsl(220 40% 13%) 0%, hsl(220 45% 10%) 100%);
+    --shadow-primary: 0 4px 30px -5px hsl(40 95% 55% / 0.25);
+    --shadow-primary-lg: 0 8px 50px -10px hsl(40 95% 55% / 0.35);
+    --shadow-card: 0 4px 30px -5px hsl(220 50% 5% / 0.4);
+    --shadow-card-hover: 0 8px 40px -5px hsl(220 50% 5% / 0.6);
+    --glow-primary: 0 0 30px hsl(40 95% 55% / 0.2);
+    --glow-primary-strong: 0 0 50px hsl(40 95% 55% / 0.35);
+    --glow-secondary: 0 0 30px hsl(197 100% 57% / 0.2);
+
+    --sidebar-background: 220 38% 15%;
+    --sidebar-foreground: 210 20% 90%;
+    --sidebar-primary: 40 95% 55%;
+    --sidebar-primary-foreground: 220 40% 10%;
+    --sidebar-accent: 220 30% 18%;
+    --sidebar-accent-foreground: 210 20% 90%;
+    --sidebar-border: 220 25% 20%;
+    --sidebar-ring: 40 95% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    direction: rtl;
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground font-arabic antialiased;
+    font-feature-settings: "ss01", "ss02", "cv01";
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display font-bold tracking-tight;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors; }
+}
+
+@layer utilities {
+  .text-gradient-primary {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .text-gradient-gold {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .bg-gradient-gold { background: var(--gradient-primary); }
+  .bg-gradient-hero { background: var(--gradient-hero); }
+  .bg-gradient-card { background: linear-gradient(145deg, hsl(260 30% 97%) 0%, hsl(260 20% 95%) 100%); }
+  .shadow-gold { box-shadow: var(--shadow-primary); }
+  .shadow-gold-lg { box-shadow: var(--shadow-primary-lg); }
+  .glow-gold { box-shadow: var(--glow-primary); }
+  .glow-gold-strong { box-shadow: var(--glow-primary-strong); }
+  .border-gold-gradient {
+    border: 1px solid transparent;
+    background: linear-gradient(hsl(260 30% 95%), hsl(260 30% 95%)) padding-box,
+                var(--gradient-primary) border-box;
+  }
+  .glass { @apply bg-background/80 backdrop-blur-xl; }
+  .glass-strong { @apply bg-background/95 backdrop-blur-2xl; }
+
+  /* Fix native select dropdown visibility in dark mode */
+  select option {
+    background-color: hsl(220 35% 16%);
+    color: hsl(210 20% 90%);
+  }
+  
+  /* Premium section spacing */
+  .section-padding { @apply py-12 lg:py-20; }
+  .section-padding-sm { @apply py-8 lg:py-12; }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: var(--glow-primary); }
+  50% { box-shadow: var(--glow-primary-strong); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-gold { animation: pulse-gold 3s ease-in-out infinite; }
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, hsl(276 100% 65% / 0.1) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+.animate-fade-in-up { animation: fade-in-up 0.6s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
+.animate-scale-in { animation: scale-in 0.4s ease-out forwards; }
+.animate-slide-in-right { animation: slide-in-right 0.5s ease-out forwards; }
+
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+/* Fix RTL date/datetime inputs - prevent reversed text */
+input[type="date"],
+input[type="datetime-local"],
+input[type="time"] {
+  direction: ltr;
+  text-align: right;
+}
