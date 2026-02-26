@@ -78,6 +78,7 @@ jobs:
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath $RUNNER_TEMP/App.xcarchive \
+            -allowProvisioningUpdates \
             clean archive \
             CODE_SIGN_STYLE=Automatic \
             DEVELOPMENT_TEAM=P2SHV4K77Q
