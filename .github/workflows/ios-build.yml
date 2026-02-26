@@ -67,8 +67,14 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
           security list-keychain -d user -s $KEYCHAIN_PATH
 
+          # Install provisioning profile with its UUID as filename
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+          PP_UUID=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i $PP_PATH)")
+          cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/${PP_UUID}.mobileprovision
+          echo "Installed profile UUID: $PP_UUID"
+
+          # List installed identities
+          security find-identity -v -p codesigning $KEYCHAIN_PATH
 
       - name: Archive app
         run: |
@@ -78,19 +84,23 @@ jobs:
             -destination 'generic/platform=iOS' \
             -configuration Release \
             -archivePath $RUNNER_TEMP/App.xcarchive \
-            -allowProvisioningUpdates \
             clean archive \
-            CODE_SIGN_STYLE=Automatic \
-            DEVELOPMENT_TEAM=P2SHV4K77Q
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM=P2SHV4K77Q \
+            "CODE_SIGN_IDENTITY=Apple Distribution" \
+            "PROVISIONING_PROFILE=15b631e2-cce5-4794-a408-e6cf9e8e3bde"
 
       - name: Create ExportOptions.plist
         run: |
           /usr/libexec/PlistBuddy -c "Clear dict" $RUNNER_TEMP/ExportOptions.plist 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :method string app-store" $RUNNER_TEMP/ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Add :teamID string P2SHV4K77Q" $RUNNER_TEMP/ExportOptions.plist
-          /usr/libexec/PlistBuddy -c "Add :signingStyle string automatic" $RUNNER_TEMP/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Add :signingStyle string manual" $RUNNER_TEMP/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Add :signingCertificate string 'Apple Distribution'" $RUNNER_TEMP/ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Add :uploadSymbols bool true" $RUNNER_TEMP/ExportOptions.plist
           /usr/libexec/PlistBuddy -c "Add :uploadBitcode bool false" $RUNNER_TEMP/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles dict" $RUNNER_TEMP/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:com.5attah.ios string 15b631e2-cce5-4794-a408-e6cf9e8e3bde" $RUNNER_TEMP/ExportOptions.plist
           cat $RUNNER_TEMP/ExportOptions.plist
 
       - name: Export IPA
