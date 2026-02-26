@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.mashrok.ios",
-  appName: "خته - 5ATTAH",
+  appId: "com.5attah.ios",
+  appName: "5attah Travel",
   webDir: "dist",
   server: {
     // For development: uncomment the url below for hot-reload
@@ -23,7 +23,7 @@ const config: CapacitorConfig = {
     preferredContentMode: "mobile",
     allowsLinkPreview: false,
     backgroundColor: "#1a2340",
-    scheme: "mashrok",
+    scheme: "5attah",
     limitsNavigationsToAppBoundDomains: true,
   },
   android: {

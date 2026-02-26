@@ -1,4 +1,4 @@
-# خطوات رفع تطبيق "خته - 5ATTAH" على متجر Apple App Store
+# خطوات رفع تطبيق "5attah Travel" على متجر Apple App Store
 
 ---
 
@@ -6,14 +6,18 @@
 
 | متطلب | الحالة |
 |--------|--------|
-| حساب Apple Developer (99$/سنة) | ❓ تأكد من التسجيل على [developer.apple.com](https://developer.apple.com) |
+| حساب Apple Developer (99$/سنة) | ✅ مفعّل |
+| Team ID | ✅ `P2SHV4K77Q` |
+| Bundle ID | ✅ `com.5attah.ios` |
+| APNs Key (6588GZ732H) | ✅ `AuthKey_6588GZ732H.p8` |
+| Sign in with Apple Key (42L5VRJDV5) | ✅ `AuthKey_42L5VRJDV5.p8` |
 | جهاز Mac (مطلوب لـ Xcode) | ❓ مطلوب - لا يمكن بناء iOS من Windows |
 | Xcode 15+ مثبت من Mac App Store | ❓ |
 | Node.js 18+ على Mac | ❓ |
 | Capacitor CLI مثبت | ✅ موجود في package.json |
 | iOS folder مهيأ | ✅ `ios/` موجود ومعد |
 | Info.plist محدث | ✅ جميع الصلاحيات مكتوبة بالعربي |
-| Bundle ID: `com.mashrok.ios` | ✅ |
+| App Icon (1024×1024) | ✅ جميع الأحجام موجودة |
 
 ---
 
@@ -111,12 +115,12 @@ ios/App/App.xcodeproj
 2. في تبويب **Signing & Capabilities**:
    - فعّل **Automatically manage signing**
    - اختر **Team** (حساب Apple Developer)
-   - تأكد أن **Bundle Identifier** = `com.mashrok.ios`
+   - تأكد أن **Bundle Identifier** = `com.5attah.ios`
 
 ### 4.2 إعدادات الإصدار
 
 في تبويب **General**:
-- **Display Name**: `خته - 5ATTAH`
+- **Display Name**: `5attah Travel`
 - **Version**: `1.0.0`
 - **Build**: `1`
 - **Minimum Deployments**: iOS 16.0 (أو حسب الحاجة)
@@ -165,10 +169,10 @@ ios/App/App.xcodeproj
 | الحقل | القيمة |
 |--------|--------|
 | Platforms | iOS |
-| Name | خته - 5ATTAH |
+| Name | 5attah Travel |
 | Primary Language | Arabic |
-| Bundle ID | com.mashrok.ios |
-| SKU | khattah-app-001 |
+| Bundle ID | com.5attah.ios |
+| SKU | 5attah-travel-001 |
 | User Access | Full Access |
 
 ### 6.2 معلومات التطبيق
@@ -207,7 +211,7 @@ ios/App/App.xcodeproj
 ### 6.5 وصف التطبيق
 
 ```
-خته - 5ATTAH | منصة حجز السفر الشاملة
+5attah Travel | منصة حجز السفر الشاملة
 
 ابحث واحجز رحلات الطيران، الفنادق، السيارات، والجولات السياحية في مكان واحد.
 
@@ -226,7 +230,7 @@ ios/App/App.xcodeproj
 ### 6.6 كلمات البحث (Keywords)
 
 ```
-سفر,حجز,طيران,فنادق,سياحة,رحلات,خته,5ATTAH,تذاكر,فندق
+سفر,حجز,طيران,فنادق,سياحة,رحلات,5attah,travel,تذاكر,فندق
 ```
 
 ### 6.7 معلومات المراجعة (App Review Information)
