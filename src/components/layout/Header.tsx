@@ -37,7 +37,7 @@ export default function Header() {
 
   const logoUrl = branding?.logo_url || khattahLogo;
   const brandName = tenant?.name || "خته";
-  const brandNameEn = tenant?.slug?.toUpperCase() || "KHATTAH";
+  const brandNameEn = tenant?.slug?.toUpperCase() || "5ATTAH";
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -56,7 +56,7 @@ export default function Header() {
         "fixed top-0 right-0 left-0 z-50 transition-all duration-300",
         scrolled
           ? "glass-strong border-b border-border/50 shadow-card"
-          : "bg-transparent border-b border-transparent"
+          : "glass-strong border-b border-border/30"
       )}
     >
       <nav className="container mx-auto px-4 lg:px-8">
@@ -116,15 +116,30 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
+          {/* Mobile Auth + Menu */}
+          <div className="flex items-center gap-2 lg:hidden">
+            {!isAuthenticated && (
+              <Link to="/login">
+                <Button variant="outline" size="sm" className="text-xs">
+                  تسجيل الدخول
+                </Button>
+              </Link>
+            )}
+            {isAuthenticated && (
+              <Link to="/dashboard">
+                <Button variant="ghost" size="icon">
+                  <User className="w-5 h-5" />
+                </Button>
+              </Link>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

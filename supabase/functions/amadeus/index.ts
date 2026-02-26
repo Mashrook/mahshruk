@@ -616,8 +616,67 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ─── Activities / Tours ───
+
+    if (req.method === "GET" && action === "activities-search") {
+      const latitude = url.searchParams.get("latitude");
+      const longitude = url.searchParams.get("longitude");
+      const radius = url.searchParams.get("radius");
+      if (!latitude || !longitude) {
+        return new Response(
+          JSON.stringify({ error: "latitude and longitude required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const token = await getAccessToken();
+      const qs = new URLSearchParams({ latitude, longitude });
+      if (radius) qs.set("radius", radius);
+      const res = await fetch(`${AMADEUS_BASE}/v1/shopping/activities?${qs}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Amadeus activities search failed [${res.status}]: ${errText}`);
+      }
+      const data = await res.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (req.method === "GET" && action === "activity-details") {
+      const activityId = url.searchParams.get("activityId");
+      if (!activityId) {
+        return new Response(
+          JSON.stringify({ error: "activityId required" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const token = await getAccessToken();
+      const res = await fetch(`${AMADEUS_BASE}/v1/shopping/activities/${activityId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Amadeus activity details failed [${res.status}]: ${errText}`);
+      }
+      const data = await res.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ─── Test Connection ───
+
+    if (req.method === "GET" && action === "test-connection") {
+      await getAccessToken();
+      return new Response(JSON.stringify({ ok: true, message: "متصل بنجاح" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     return new Response(
-      JSON.stringify({ error: "Invalid action. Use: search, price, book, hotel-list, hotel-offers, hotel-offer-details, hotel-book, transfer-search, transfer-book, transfer-cancel" }),
+      JSON.stringify({ error: "Invalid action. Use: search, price, book, hotel-list, hotel-offers, hotel-offer-details, hotel-book, transfer-search, transfer-book, transfer-cancel, activities-search, activity-details, test-connection" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {

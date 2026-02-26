@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/authStore";
 import { usePermissionStore } from "@/stores/permissionStore";
 import { Button } from "@/components/ui/button";
-import mashrokLogo from "@/assets/mashrok-logo.png";
+import khattahLogo from "@/assets/khattah-logo.png";
 import {
   LayoutDashboard, Users, Plane, Hotel, Car, Map, ArrowRightLeft,
   Tag, Globe, FileText, Settings, LogOut, Newspaper, Handshake,
@@ -132,11 +132,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         {/* Logo + collapse toggle */}
         <div className="p-3 border-b border-border/50 flex items-center justify-between gap-2">
           <Link to="/admin" className="flex items-center gap-2.5 min-w-0">
-            <img src={mashrokLogo} alt="مشروك" className="w-9 h-9 rounded-lg object-contain shrink-0" />
+            <img src={khattahLogo} alt="خته" className="w-9 h-9 rounded-lg object-contain shrink-0" />
             {!collapsed && (
               <div className="min-w-0">
                 <h3 className="font-bold text-foreground text-sm truncate">لوحة التحكم</h3>
-                <span className="text-[10px] text-muted-foreground">مشروك</span>
+                <span className="text-[10px] text-muted-foreground">خته</span>
               </div>
             )}
           </Link>

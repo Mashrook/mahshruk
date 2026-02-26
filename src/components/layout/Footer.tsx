@@ -29,10 +29,10 @@ export default function Footer() {
 
   const logoUrl = branding?.logo_url || khattahLogo;
   const brandName = tenant?.name || "خته";
-  const brandNameEn = tenant?.slug?.toUpperCase() || "KHATTAH";
-  const supportEmail = branding?.support_email || "info@khattah.com";
+  const brandNameEn = tenant?.slug?.toUpperCase() || "5ATTAH";
+  const supportEmail = branding?.support_email || "info@5attah.com";
   const supportPhone = branding?.support_phone || "+966 54 245 4094";
-  const footerText = branding?.footer_text || `© ${new Date().getFullYear()} Khattah - خته. جميع الحقوق محفوظة.`;
+  const footerText = branding?.footer_text || `© ${new Date().getFullYear()} 5ATTAH - خته. جميع الحقوق محفوظة.`;
 
   return (
     <footer className="bg-muted/30 border-t border-border mt-auto">

@@ -1,4 +1,4 @@
-# iOS App Store Preparation Guide - خته (Khattah)
+# iOS App Store Preparation Guide - خته (5ATTAH)
 
 ## Prerequisites
 - macOS with Xcode 15+ installed

@@ -69,6 +69,7 @@ import AdminTenantSettings from "./pages/admin/AdminTenantSettings";
 import AdminBilling from "./pages/admin/AdminBilling";
 import AdminPlans from "./pages/admin/AdminPlans";
 import AdminPromoMedia from "./pages/admin/AdminPromoMedia";
+import AdminPages from "./pages/admin/AdminPages";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,7 @@ const App = () => (
               <Route path="/admin/billing" element={<ProtectedRoute requireAdmin><AdminLayout><AdminBilling /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/plans" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPlans /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/promo-media" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPromoMedia /></AdminLayout></ProtectedRoute>} />
+              <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminLayout><AdminPages /></AdminLayout></ProtectedRoute>} />
               <Route path="/admin/*" element={<ProtectedRoute requireAdmin><AdminLayout><AdminDashboard /></AdminLayout></ProtectedRoute>} />
 
               {/* 404 */}

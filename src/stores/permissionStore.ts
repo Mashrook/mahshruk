@@ -5,7 +5,7 @@ interface PermissionState {
   permissions: string[];
   loaded: boolean;
   loading: boolean;
-  fetchPermissions: (userId: string) => Promise<void>;
+  fetchPermissions: (userId: string, forceRefresh?: boolean) => Promise<void>;
   hasPermission: (key: string) => boolean;
   hasAnyPermission: (keys: string[]) => boolean;
   clear: () => void;
@@ -16,8 +16,8 @@ export const usePermissionStore = create<PermissionState>((set, get) => ({
   loaded: false,
   loading: false,
 
-  fetchPermissions: async (userId) => {
-    if (get().loaded) return;
+  fetchPermissions: async (userId, forceRefresh = false) => {
+    if (get().loaded && !forceRefresh) return;
     set({ loading: true });
     try {
       // Get user roles first

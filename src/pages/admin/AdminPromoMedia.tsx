@@ -4,37 +4,64 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "@/hooks/use-toast";
-import { Upload, Trash2, Video, Image, Eye } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Upload, Trash2, Video, Image, Eye, Plus, FileText, Loader2 } from "lucide-react";
+
+interface MediaItem {
+  id: string;
+  label: string;
+  settingKeyUrl: string;
+  settingKeyType: string;
+  url: string;
+  type: "video" | "image";
+}
+
+const defaultSlots: Omit<MediaItem, "id" | "url" | "type">[] = [
+  { label: "الصفحة الرئيسية", settingKeyUrl: "promo_media_url", settingKeyType: "promo_media_type" },
+  { label: "صفحة العروض", settingKeyUrl: "promo_offers_url", settingKeyType: "promo_offers_type" },
+  { label: "صفحة الوجهات", settingKeyUrl: "promo_destinations_url", settingKeyType: "promo_destinations_type" },
+];
 
 export default function AdminPromoMedia() {
-  const [promoUrl, setPromoUrl] = useState("");
-  const [promoType, setPromoType] = useState<"video" | "image">("video");
-  const [uploading, setUploading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [slots, setSlots] = useState<MediaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState<string | null>(null);
+  const [saving, setSaving] = useState<string | null>(null);
+  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const { toast } = useToast();
 
   useEffect(() => {
-    loadSettings();
+    loadAllSlots();
   }, []);
 
-  const loadSettings = async () => {
-    const { data: urlSetting } = await supabase
+  const loadAllSlots = async () => {
+    setLoading(true);
+    const keys = defaultSlots.flatMap(s => [s.settingKeyUrl, s.settingKeyType]);
+    const { data } = await supabase
       .from("site_settings")
-      .select("setting_value")
-      .eq("setting_key", "promo_media_url")
-      .maybeSingle();
-    const { data: typeSetting } = await supabase
-      .from("site_settings")
-      .select("setting_value")
-      .eq("setting_key", "promo_media_type")
-      .maybeSingle();
+      .select("setting_key, setting_value")
+      .in("setting_key", keys);
 
-    if (urlSetting?.setting_value) setPromoUrl(urlSetting.setting_value);
-    if (typeSetting?.setting_value) setPromoType(typeSetting.setting_value as "video" | "image");
+    const map: Record<string, string> = {};
+    (data || []).forEach(d => { map[d.setting_key] = d.setting_value || ""; });
+
+    const loaded = defaultSlots.map((s, i) => ({
+      id: String(i),
+      label: s.label,
+      settingKeyUrl: s.settingKeyUrl,
+      settingKeyType: s.settingKeyType,
+      url: map[s.settingKeyUrl] || "",
+      type: (map[s.settingKeyType] as "video" | "image") || "video",
+    }));
+    setSlots(loaded);
+    setLoading(false);
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const updateSlot = (id: string, patch: Partial<MediaItem>) => {
+    setSlots(prev => prev.map(s => s.id === id ? { ...s, ...patch } : s));
+  };
+
+  const handleFileUpload = async (slotId: string, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -45,9 +72,9 @@ export default function AdminPromoMedia() {
       return;
     }
 
-    setUploading(true);
+    setUploading(slotId);
     const ext = file.name.split(".").pop();
-    const fileName = `promo-${Date.now()}.${ext}`;
+    const fileName = `promo-${slotId}-${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage
       .from("promo-media")
@@ -55,175 +82,147 @@ export default function AdminPromoMedia() {
 
     if (error) {
       toast({ title: "خطأ في الرفع", description: error.message, variant: "destructive" });
-      setUploading(false);
+      setUploading(null);
       return;
     }
 
     const { data: publicUrl } = supabase.storage.from("promo-media").getPublicUrl(fileName);
-    setPromoUrl(publicUrl.publicUrl);
-    setPromoType(isVideo ? "video" : "image");
-    setUploading(false);
+    updateSlot(slotId, {
+      url: publicUrl.publicUrl,
+      type: isVideo ? "video" : "image",
+    });
+    setUploading(null);
     toast({ title: "تم رفع الملف بنجاح" });
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      // Upsert promo_media_url
-      const { data: existing } = await supabase
-        .from("site_settings")
-        .select("id")
-        .eq("setting_key", "promo_media_url")
-        .maybeSingle();
+  const upsertSetting = async (key: string, value: string, type: string = "text") => {
+    const { data: existing } = await supabase
+      .from("site_settings")
+      .select("id")
+      .eq("setting_key", key)
+      .maybeSingle();
 
-      if (existing) {
-        await supabase
-          .from("site_settings")
-          .update({ setting_value: promoUrl })
-          .eq("setting_key", "promo_media_url");
-      } else {
-        await supabase.from("site_settings").insert({
-          setting_key: "promo_media_url",
-          setting_value: promoUrl,
-          setting_type: "url",
-        });
-      }
-
-      // Upsert promo_media_type
-      const { data: existingType } = await supabase
-        .from("site_settings")
-        .select("id")
-        .eq("setting_key", "promo_media_type")
-        .maybeSingle();
-
-      if (existingType) {
-        await supabase
-          .from("site_settings")
-          .update({ setting_value: promoType })
-          .eq("setting_key", "promo_media_type");
-      } else {
-        await supabase.from("site_settings").insert({
-          setting_key: "promo_media_type",
-          setting_value: promoType,
-          setting_type: "text",
-        });
-      }
-
-      toast({ title: "تم حفظ الإعدادات" });
-    } catch {
-      toast({ title: "خطأ", variant: "destructive" });
-    } finally {
-      setSaving(false);
+    if (existing) {
+      await supabase.from("site_settings").update({ setting_value: value }).eq("setting_key", key);
+    } else {
+      await supabase.from("site_settings").insert({ setting_key: key, setting_value: value, setting_type: type });
     }
   };
 
-  const handleRemove = async () => {
-    setPromoUrl("");
-    await supabase.from("site_settings").update({ setting_value: "" }).eq("setting_key", "promo_media_url");
-    toast({ title: "تم حذف المحتوى الدعائي" });
+  const handleSaveSlot = async (slot: MediaItem) => {
+    setSaving(slot.id);
+    try {
+      await upsertSetting(slot.settingKeyUrl, slot.url, "url");
+      await upsertSetting(slot.settingKeyType, slot.type, "text");
+      toast({ title: `تم حفظ محتوى "${slot.label}"` });
+    } catch {
+      toast({ title: "خطأ", variant: "destructive" });
+    }
+    setSaving(null);
   };
+
+  const handleRemoveSlot = async (slot: MediaItem) => {
+    updateSlot(slot.id, { url: "" });
+    await supabase.from("site_settings").update({ setting_value: "" }).eq("setting_key", slot.settingKeyUrl);
+    toast({ title: `تم حذف محتوى "${slot.label}"` });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" dir="rtl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">المحتوى الدعائي</h1>
-          <p className="text-muted-foreground">رفع فيديو أو صورة دعائية تظهر في الصفحة الرئيسية</p>
+          <p className="text-muted-foreground text-sm">رفع فيديو أو صورة دعائية لكل صفحة — من الجهاز أو برابط مباشر</p>
         </div>
         <Video className="w-8 h-8 text-primary" />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>رفع محتوى دعائي</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Upload */}
-          <div className="space-y-2">
-            <Label>اختر ملف فيديو أو صورة من جهازك</Label>
+      {slots.map((slot) => (
+        <Card key={slot.id}>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileText className="w-4 h-4 text-primary" />
+              {slot.label}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Upload */}
             <input
-              ref={fileInputRef}
+              ref={(el) => { fileInputRefs.current[slot.id] = el; }}
               type="file"
               accept="video/*,image/*"
               className="hidden"
-              onChange={handleFileUpload}
+              onChange={(e) => handleFileUpload(slot.id, e)}
+              title={`رفع ملف لـ ${slot.label}`}
             />
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3 items-center">
               <Button
                 variant="outline"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
+                size="sm"
+                onClick={() => fileInputRefs.current[slot.id]?.click()}
+                disabled={uploading === slot.id}
               >
                 <Upload className="w-4 h-4 ml-2" />
-                {uploading ? "جاري الرفع..." : "رفع ملف"}
+                {uploading === slot.id ? "جاري الرفع..." : "رفع من الجهاز"}
               </Button>
-              {promoUrl && (
-                <Button variant="destructive" size="sm" onClick={handleRemove}>
-                  <Trash2 className="w-4 h-4 ml-2" />
-                  حذف
+              <Button
+                variant={slot.type === "video" ? "default" : "outline"}
+                size="sm"
+                onClick={() => updateSlot(slot.id, { type: "video" })}
+              >
+                <Video className="w-4 h-4 ml-1" /> فيديو
+              </Button>
+              <Button
+                variant={slot.type === "image" ? "default" : "outline"}
+                size="sm"
+                onClick={() => updateSlot(slot.id, { type: "image" })}
+              >
+                <Image className="w-4 h-4 ml-1" /> صورة
+              </Button>
+              {slot.url && (
+                <Button variant="destructive" size="sm" onClick={() => handleRemoveSlot(slot)}>
+                  <Trash2 className="w-4 h-4 ml-1" /> حذف
                 </Button>
               )}
             </div>
-          </div>
 
-          {/* Or paste URL */}
-          <div className="space-y-2">
-            <Label>أو أدخل رابط مباشر</Label>
+            {/* URL */}
             <Input
-              value={promoUrl}
-              onChange={(e) => setPromoUrl(e.target.value)}
-              placeholder="https://example.com/promo-video.mp4"
+              value={slot.url}
+              onChange={(e) => updateSlot(slot.id, { url: e.target.value })}
+              placeholder="أو أدخل رابط مباشر للفيديو أو الصورة"
+              className="bg-muted/30"
               dir="ltr"
             />
-          </div>
 
-          {/* Type selector */}
-          <div className="flex gap-3">
-            <Button
-              variant={promoType === "video" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPromoType("video")}
-            >
-              <Video className="w-4 h-4 ml-2" />
-              فيديو
-            </Button>
-            <Button
-              variant={promoType === "image" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setPromoType("image")}
-            >
-              <Image className="w-4 h-4 ml-2" />
-              صورة
-            </Button>
-          </div>
-
-          {/* Preview */}
-          {promoUrl && (
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2"><Eye className="w-4 h-4" />معاينة</Label>
-              <div className="rounded-xl overflow-hidden border border-border bg-muted max-w-2xl">
-                {promoType === "video" ? (
-                  <video
-                    src={promoUrl}
-                    controls
-                    className="w-full aspect-video object-cover"
-                  />
-                ) : (
-                  <img
-                    src={promoUrl}
-                    alt="محتوى دعائي"
-                    className="w-full aspect-video object-cover"
-                  />
-                )}
+            {/* Preview */}
+            {slot.url && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2 text-xs"><Eye className="w-3.5 h-3.5" />معاينة</Label>
+                <div className="rounded-xl overflow-hidden border border-border bg-muted max-w-lg">
+                  {slot.type === "video" ? (
+                    <video src={slot.url} controls className="w-full aspect-video object-cover" />
+                  ) : (
+                    <img src={slot.url} alt={slot.label} className="w-full aspect-video object-cover" />
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
-          </Button>
-        </CardContent>
-      </Card>
+            <Button variant="gold" size="sm" onClick={() => handleSaveSlot(slot)} disabled={saving === slot.id}>
+              {saving === slot.id ? "جاري الحفظ..." : "حفظ"}
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

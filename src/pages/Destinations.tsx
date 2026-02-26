@@ -310,7 +310,7 @@ export default function Destinations() {
                 placeholder="بريدك الإلكتروني"
                 value={emailSub}
                 onChange={(e) => setEmailSub(e.target.value)}
-                className="bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/50"
+                className="bg-foreground/10 border-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50"
                 dir="ltr"
               />
               <Button variant="gold">اشترك الآن</Button>

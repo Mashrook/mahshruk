@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { Sparkles, Check, Calendar, MapPin, Clock, Users, Star, ChevronLeft, Plane, Hotel, Bus, ShieldCheck } from "lucide-react";
+import { Sparkles, Check, Calendar, MapPin, Clock, Users, Star, ChevronLeft, Plane, Hotel, Bus, ShieldCheck, Search, Loader2, DollarSign, AlertCircle, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import CityAutocomplete from "@/components/search/CityAutocomplete";
+import { searchActivities, getActivityDetails } from "@/services/amadeusService";
 
 import hajjImg from "@/assets/seasonal/hajj-programs.jpg";
 import ramadanImg from "@/assets/seasonal/ramadan-offers.jpg";
@@ -78,6 +81,53 @@ const seasonHighlights = [
 
 export default function Tours() {
   const navigate = useNavigate();
+  const [searchCity, setSearchCity] = useState("");
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
+  const [activities, setActivities] = useState<any[]>([]);
+  const [searched, setSearched] = useState(false);
+
+  // City → lat/lng for Amadeus Activities API
+  const cityCoords: Record<string, { lat: number; lng: number }> = {
+    "الرياض": { lat: 24.7136, lng: 46.6753 },
+    "جدة": { lat: 21.5433, lng: 39.1728 },
+    "مكة": { lat: 21.4225, lng: 39.8262 },
+    "المدينة": { lat: 24.4672, lng: 39.6112 },
+    "الدمام": { lat: 26.4207, lng: 50.0888 },
+    "أبها": { lat: 18.2164, lng: 42.5053 },
+    "الطائف": { lat: 21.2703, lng: 40.4158 },
+    "تبوك": { lat: 28.3998, lng: 36.5652 },
+    "دبي": { lat: 25.2048, lng: 55.2708 },
+    "القاهرة": { lat: 30.0444, lng: 31.2357 },
+    "إسطنبول": { lat: 41.0082, lng: 28.9784 },
+    "لندن": { lat: 51.5074, lng: -0.1278 },
+    "باريس": { lat: 48.8566, lng: 2.3522 },
+  };
+
+  const handleSearchActivities = async () => {
+    if (!searchCity) {
+      setSearchError("يرجى إدخال المدينة");
+      return;
+    }
+    setSearchError("");
+    setSearchLoading(true);
+    setSearched(true);
+    try {
+      const coords = cityCoords[searchCity];
+      if (!coords) {
+        setSearchError("المدينة غير مدعومة حالياً — جرب: الرياض، جدة، دبي، إسطنبول");
+        setActivities([]);
+        setSearchLoading(false);
+        return;
+      }
+      const result = await searchActivities({ latitude: coords.lat, longitude: coords.lng, radius: 20 });
+      setActivities(result.data || []);
+    } catch (err: any) {
+      setSearchError(err.message || "فشل البحث — تأكد من إعداد Amadeus API في لوحة التحكم");
+      setActivities([]);
+    }
+    setSearchLoading(false);
+  };
 
   return (
     <div className="min-h-screen">
@@ -93,6 +143,106 @@ export default function Tours() {
           </p>
         </div>
       </section>
+
+      {/* Activities Search Section */}
+      <div className="container mx-auto px-4 lg:px-8 -mt-6 mb-10 relative z-10">
+        <div className="max-w-3xl mx-auto p-6 rounded-2xl bg-card/95 backdrop-blur-xl border border-border shadow-card">
+          <h3 className="font-bold mb-3 flex items-center gap-2">
+            <Map className="w-5 h-5 text-primary" />
+            ابحث عن أنشطة ورحلات سياحية
+          </h3>
+          <div className="grid md:grid-cols-3 gap-4 mb-3">
+            <div className="md:col-span-2">
+              <CityAutocomplete value={searchCity} onChange={setSearchCity} placeholder="اختر المدينة..." label="المدينة" />
+            </div>
+            <div className="flex items-end">
+              <Button variant="gold" size="lg" className="w-full" onClick={handleSearchActivities} disabled={searchLoading}>
+                {searchLoading ? <><Loader2 className="w-4 h-4 ml-2 animate-spin" /> جاري البحث...</> : <><Search className="w-4 h-4 ml-2" /> بحث</>}
+              </Button>
+            </div>
+          </div>
+          {searchError && (
+            <div className="flex items-center gap-2 text-destructive text-sm p-2 rounded-lg bg-destructive/10">
+              <AlertCircle className="w-4 h-4" /> {searchError}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activities Results */}
+      {searched && (
+        <div className="container mx-auto px-4 lg:px-8 mb-10">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              الأنشطة والرحلات المتاحة
+              {activities.length > 0 && <Badge variant="default" className="mr-2">{activities.length} نشاط</Badge>}
+            </h2>
+
+            {searchLoading ? (
+              <div className="p-12 text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">جاري البحث في Amadeus...</p>
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="p-8 rounded-2xl bg-card border border-border/50 text-center">
+                <Map className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground text-sm">لا توجد أنشطة لهذه المدينة. جرب مدينة أخرى.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {activities.slice(0, 12).map((activity: any) => (
+                  <div key={activity.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden hover:border-primary/30 transition-all group">
+                    {activity.pictures?.[0] ? (
+                      <div className="relative h-44 overflow-hidden">
+                        <img src={activity.pictures[0]} alt={activity.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                        {activity.bookingLink && (
+                          <Badge className="absolute top-3 right-3 bg-primary text-primary-foreground text-[10px]">حجز مباشر</Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="h-32 bg-primary/10 flex items-center justify-center">
+                        <Map className="w-10 h-10 text-primary/50" />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h4 className="font-bold text-sm mb-1 line-clamp-2">{activity.name}</h4>
+                      {activity.shortDescription && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{activity.shortDescription}</p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-3">
+                        {activity.rating && (
+                          <span className="flex items-center gap-1"><Star className="w-3 h-3 text-yellow-500" />{activity.rating}</span>
+                        )}
+                        {activity.minimumDuration && (
+                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{activity.minimumDuration}</span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-border/30">
+                        {activity.price ? (
+                          <div>
+                            <p className="text-lg font-bold text-primary">{Number(activity.price.amount).toLocaleString()}</p>
+                            <p className="text-[10px] text-muted-foreground">{activity.price.currencyCode}</p>
+                          </div>
+                        ) : (
+                          <p className="text-sm text-muted-foreground">السعر حسب الطلب</p>
+                        )}
+                        {activity.bookingLink ? (
+                          <a href={activity.bookingLink} target="_blank" rel="noopener noreferrer">
+                            <Button variant="gold" size="sm" className="text-xs">احجز الآن</Button>
+                          </a>
+                        ) : (
+                          <Button variant="outline" size="sm" className="text-xs" onClick={() => navigate("/contact")}>استفسار</Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="container mx-auto px-4 lg:px-8 -mt-4">
         {/* Top Grid: Why Choose Us + First Two Programs */}

@@ -45,3 +45,7 @@ build/
 *.p8
 *.ipa
 AuthKey*.p8
+
+# Swift build
+.build/
+

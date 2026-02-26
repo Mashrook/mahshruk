@@ -355,6 +355,7 @@ export default function AdminRBAC() {
                 <select
                   value={newAdminRole}
                   onChange={(e) => setNewAdminRole(e.target.value)}
+                  title="اختيار الدور"
                   className="px-4 py-2 rounded-xl bg-muted border border-border/50 text-foreground text-sm focus:outline-none focus:border-primary/50"
                 >
                   {ROLES.map((r) => (

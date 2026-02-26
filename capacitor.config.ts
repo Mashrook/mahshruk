@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.mashrok.ios",
-  appName: "خته - Khattah",
+  appName: "خته - 5ATTAH",
   webDir: "dist",
   server: {
     // For development: uncomment the url below for hot-reload

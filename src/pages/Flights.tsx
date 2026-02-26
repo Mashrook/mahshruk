@@ -196,7 +196,7 @@ export default function Flights() {
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">بلد المغادرة</label>
                   <div className="grid grid-cols-[1fr_auto] gap-2">
                     <CityAutocomplete value={from} onChange={setFrom} placeholder="اختر المدينة أو المطار" label="" showCode />
-                    <select className="bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none">
+                    <select title="تصفية بلد المغادرة" className="bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none">
                       <option>الكل</option>
                     </select>
                   </div>
@@ -205,7 +205,7 @@ export default function Flights() {
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">بلد الوصول</label>
                   <div className="grid grid-cols-[1fr_auto] gap-2">
                     <CityAutocomplete value={to} onChange={setTo} placeholder="اختر المدينة أو المطار" label="" showCode />
-                    <select className="bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none">
+                    <select title="تصفية بلد الوصول" className="bg-muted/50 border border-border rounded-xl px-3 py-2.5 text-sm text-foreground outline-none">
                       <option>الكل</option>
                     </select>
                   </div>
@@ -238,6 +238,7 @@ export default function Flights() {
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
                     <Users className="w-4 h-4 text-muted-foreground shrink-0" />
                     <select value={passengers} onChange={(e) => setPassengers(Number(e.target.value))}
+                      title="عدد المسافرين"
                       className="bg-transparent w-full text-sm text-foreground outline-none text-right">
                       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(n => <option key={n} value={n}>مسافر {n}</option>)}
                     </select>
@@ -247,7 +248,7 @@ export default function Flights() {
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">درجة السفر</label>
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
                     <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <select className="bg-transparent w-full text-sm text-foreground outline-none text-right">
+                    <select title="درجة السفر" className="bg-transparent w-full text-sm text-foreground outline-none text-right">
                       <option>الاقتصادية</option>
                       <option>رجال الأعمال</option>
                       <option>الأولى</option>
@@ -258,7 +259,7 @@ export default function Flights() {
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">شركة الطيران (اختياري)</label>
                   <div className="bg-muted/50 border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
                     <Plane className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <select className="bg-transparent w-full text-sm text-foreground outline-none text-right">
+                    <select title="شركة الطيران" className="bg-transparent w-full text-sm text-foreground outline-none text-right">
                       <option>كل الشركات</option>
                       {airlines.map(a => <option key={a.code} value={a.code}>{a.name}</option>)}
                     </select>

@@ -109,6 +109,7 @@ export default function AdminAuditLogs() {
         <select
           value={entityFilter}
           onChange={(e) => setEntityFilter(e.target.value)}
+          title="تصفية حسب الكيان"
           className="px-4 py-2 rounded-xl bg-muted border border-border/50 text-foreground text-sm"
         >
           <option value="">كل الكيانات</option>

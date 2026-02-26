@@ -526,6 +526,71 @@ export function getCityName(code: string): string {
   return cityNames[code] || code;
 }
 
+// ─── Tours & Activities API ───
+
+export async function searchActivities(params: { latitude: number; longitude: number; radius?: number }) {
+  const qs = new URLSearchParams({
+    action: "activities-search",
+    latitude: String(params.latitude),
+    longitude: String(params.longitude),
+  });
+  if (params.radius) qs.set("radius", String(params.radius));
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${FUNCTION_NAME}?${qs}`;
+  const res = await fetch(url, { headers: defaultHeaders });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Activities search failed" }));
+    throw new Error(err.error || "فشل البحث عن الأنشطة");
+  }
+
+  return await res.json();
+}
+
+export async function getActivityDetails(activityId: string) {
+  const qs = new URLSearchParams({
+    action: "activity-details",
+    activityId,
+  });
+
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${FUNCTION_NAME}?${qs}`;
+  const res = await fetch(url, { headers: defaultHeaders });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Activity details failed" }));
+    throw new Error(err.error || "فشل تحميل تفاصيل النشاط");
+  }
+
+  return await res.json();
+}
+
+// ─── Connection Status ───
+
+export async function isAmadeusConfigured(): Promise<boolean> {
+  try {
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${FUNCTION_NAME}?action=test-connection`;
+    const res = await fetch(url, { headers: defaultHeaders });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function testAmadeusConnection(): Promise<{
+  ok: boolean;
+  message: string;
+}> {
+  try {
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/${FUNCTION_NAME}?action=test-connection`;
+    const res = await fetch(url, { headers: defaultHeaders });
+    const data = await res.json();
+    if (!res.ok) return { ok: false, message: data.error || "فشل الاتصال" };
+    return { ok: true, message: data.message || "متصل بنجاح" };
+  } catch (err: unknown) {
+    return { ok: false, message: (err as Error).message };
+  }
+}
+
 export function getNightsCount(checkIn: string, checkOut: string): number {
   const diff = (new Date(checkOut).getTime() - new Date(checkIn).getTime()) / (1000 * 60 * 60 * 24);
   return diff > 0 ? Math.round(diff) : 1;

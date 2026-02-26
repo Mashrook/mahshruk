@@ -96,14 +96,14 @@
   }
   .bg-gradient-gold { background: var(--gradient-primary); }
   .bg-gradient-hero { background: var(--gradient-hero); }
-  .bg-gradient-card { background: linear-gradient(145deg, hsl(260 30% 97%) 0%, hsl(260 20% 95%) 100%); }
+  .bg-gradient-card { background: linear-gradient(145deg, hsl(220 35% 18%) 0%, hsl(220 30% 14%) 100%); }
   .shadow-gold { box-shadow: var(--shadow-primary); }
   .shadow-gold-lg { box-shadow: var(--shadow-primary-lg); }
   .glow-gold { box-shadow: var(--glow-primary); }
   .glow-gold-strong { box-shadow: var(--glow-primary-strong); }
   .border-gold-gradient {
     border: 1px solid transparent;
-    background: linear-gradient(hsl(260 30% 95%), hsl(260 30% 95%)) padding-box,
+    background: linear-gradient(hsl(220 35% 16%), hsl(220 35% 16%)) padding-box,
                 var(--gradient-primary) border-box;
   }
   .glass { @apply bg-background/80 backdrop-blur-xl; }

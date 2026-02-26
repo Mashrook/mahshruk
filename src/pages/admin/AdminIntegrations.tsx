@@ -7,8 +7,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import {
   Key, Plus, Trash2, Eye, EyeOff, Link2, CheckCircle, XCircle,
-  Pencil, Save, X, Search, RefreshCw, Shield, Globe, Copy, Check
+  Pencil, Save, X, Search, RefreshCw, Shield, Globe, Copy, Check,
+  Zap, Plane, Hotel, Car, Map, CreditCard, Loader2, AlertCircle, Rocket
 } from "lucide-react";
+import { isAmadeusConfigured, testAmadeusConnection } from "@/services/amadeusService";
+import { isMoyasarConfigured } from "@/services/moyasarService";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from "@/components/ui/dialog";
@@ -139,6 +142,307 @@ function ApiKeyForm({
         >
           <Save className="w-4 h-4 ml-1" /> {saving ? "جاري الحفظ..." : initial ? "تحديث" : "إضافة"}
         </Button>
+      </div>
+    </div>
+  );
+}
+
+// ── Quick Setup Panel ──
+interface QuickSetupPanelProps {
+  endpoints: ServiceEndpoint[];
+  keys: ApiKey[];
+  onRefresh: () => void;
+  toast: ReturnType<typeof useToast>["toast"];
+}
+
+const SEARCH_ENGINE_TEMPLATES = [
+  {
+    service: "amadeus",
+    label: "Amadeus - رحلات الطيران والفنادق",
+    icon: Plane,
+    base_url: "https://test.api.amadeus.com",
+    notes: "محرك بحث Amadeus API للطيران والفنادق والتنقلات والأنشطة",
+    requiredKeys: [
+      { key_name: "client_id", placeholder: "أدخل Client ID..." },
+      { key_name: "client_secret", placeholder: "أدخل Client Secret..." },
+    ],
+  },
+  {
+    service: "moyasar",
+    label: "Moyasar - بوابة الدفع",
+    icon: CreditCard,
+    base_url: "https://api.moyasar.com/v1",
+    notes: "بوابة دفع Moyasar للمدفوعات الإلكترونية",
+    requiredKeys: [
+      { key_name: "secret_key", placeholder: "sk_test_..." },
+      { key_name: "publishable_key", placeholder: "pk_test_..." },
+    ],
+  },
+  {
+    service: "skyscanner",
+    label: "Skyscanner - بحث الطيران",
+    icon: Plane,
+    base_url: "https://partners.api.skyscanner.net",
+    notes: "محرك بحث Skyscanner كبديل للطيران",
+    requiredKeys: [
+      { key_name: "api_key", placeholder: "أدخل مفتاح API..." },
+    ],
+  },
+  {
+    service: "booking_hotels",
+    label: "Booking.com - الفنادق",
+    icon: Hotel,
+    base_url: "https://distribution-xml.booking.com/2.0",
+    notes: "بحث الفنادق من Booking.com",
+    requiredKeys: [
+      { key_name: "api_key", placeholder: "أدخل مفتاح API..." },
+      { key_name: "affiliate_id", placeholder: "رقم الشريك..." },
+    ],
+  },
+  {
+    service: "rentalcars",
+    label: "إيجار السيارات",
+    icon: Car,
+    base_url: "https://api.rentalcars.com/v1",
+    notes: "محرك بحث إيجار السيارات",
+    requiredKeys: [
+      { key_name: "api_key", placeholder: "أدخل مفتاح API..." },
+    ],
+  },
+  {
+    service: "viator_tours",
+    label: "Viator - الرحلات السياحية",
+    icon: Map,
+    base_url: "https://api.viator.com/partner",
+    notes: "محرك بحث الرحلات السياحية والأنشطة",
+    requiredKeys: [
+      { key_name: "api_key", placeholder: "أدخل مفتاح API..." },
+    ],
+  },
+];
+
+function QuickSetupPanel({ endpoints, keys, onRefresh, toast }: QuickSetupPanelProps) {
+  const [setupValues, setSetupValues] = useState<Record<string, Record<string, string>>>({});
+  const [saving, setSaving] = useState<string | null>(null);
+  const [testing, setTesting] = useState<string | null>(null);
+  const [testResults, setTestResults] = useState<Record<string, { ok: boolean; message: string }>>({});
+
+  const isServiceConfigured = (service: string) => {
+    const hasEndpoint = endpoints.some((e) => e.service === service && e.status === "enabled");
+    const template = SEARCH_ENGINE_TEMPLATES.find((t) => t.service === service);
+    const hasAllKeys = template?.requiredKeys.every((rk) =>
+      keys.some((k) => k.service === service && k.key_name === rk.key_name && k.is_active)
+    );
+    return hasEndpoint && hasAllKeys;
+  };
+
+  const handleQuickSetup = async (template: typeof SEARCH_ENGINE_TEMPLATES[0]) => {
+    const values = setupValues[template.service] || {};
+    const missingKeys = template.requiredKeys.filter((rk) => !values[rk.key_name]?.trim());
+
+    if (missingKeys.length > 0) {
+      toast({ title: "مطلوب", description: `أدخل قيمة: ${missingKeys.map((k) => k.key_name).join(", ")}`, variant: "destructive" });
+      return;
+    }
+
+    setSaving(template.service);
+    try {
+      // Upsert endpoint
+      const existingEP = endpoints.find((e) => e.service === template.service);
+      if (!existingEP) {
+        await supabase.from("service_endpoints").insert({
+          service: template.service,
+          base_url: template.base_url,
+          status: "enabled",
+          notes: template.notes,
+        } as any);
+      } else if (existingEP.status !== "enabled") {
+        await supabase.from("service_endpoints").update({ status: "enabled" }).eq("id", existingEP.id);
+      }
+
+      // Upsert keys
+      for (const rk of template.requiredKeys) {
+        const val = values[rk.key_name].trim();
+        const existingKey = keys.find((k) => k.service === template.service && k.key_name === rk.key_name);
+        if (existingKey) {
+          await supabase.from("api_keys").update({ key_value: val, is_active: true }).eq("id", existingKey.id);
+        } else {
+          await supabase.from("api_keys").insert({
+            service: template.service,
+            key_name: rk.key_name,
+            key_value: val,
+            is_active: true,
+          } as any);
+        }
+      }
+
+      toast({ title: "تم الإعداد بنجاح", description: `تم تفعيل ${template.label}` });
+      onRefresh();
+    } catch (err: any) {
+      toast({ title: "خطأ", description: err.message, variant: "destructive" });
+    }
+    setSaving(null);
+  };
+
+  const handleTestConnection = async (service: string) => {
+    setTesting(service);
+    try {
+      if (service === "amadeus") {
+        const result = await testAmadeusConnection();
+        setTestResults((prev) => ({ ...prev, [service]: { ok: result.ok, message: result.message } }));
+      } else if (service === "moyasar") {
+        const configured = await isMoyasarConfigured();
+        setTestResults((prev) => ({
+          ...prev,
+          [service]: configured
+            ? { ok: true, message: "المفاتيح مُهيّأة بنجاح" }
+            : { ok: false, message: "المفاتيح غير مُهيّأة" },
+        }));
+      } else {
+        // Generic test: just verify endpoint + keys exist
+        const configured = isServiceConfigured(service);
+        setTestResults((prev) => ({
+          ...prev,
+          [service]: configured
+            ? { ok: true, message: "الرابط والمفاتيح مُهيّأة" }
+            : { ok: false, message: "يرجى إكمال الإعداد" },
+        }));
+      }
+    } catch (err: any) {
+      setTestResults((prev) => ({ ...prev, [service]: { ok: false, message: err.message } }));
+    }
+    setTesting(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/20">
+        <div className="flex items-center gap-3 mb-2">
+          <Rocket className="w-6 h-6 text-primary" />
+          <h2 className="text-lg font-bold">الإعداد السريع للتكاملات</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          أضف مفاتيح APIs وروابط محركات البحث بسرعة. ادخل المفاتيح واضغط "تفعيل" لإعداد الخدمة بالكامل.
+        </p>
+      </div>
+
+      {/* Templates Grid */}
+      <div className="grid gap-5">
+        {SEARCH_ENGINE_TEMPLATES.map((template) => {
+          const configured = isServiceConfigured(template.service);
+          const testResult = testResults[template.service];
+          const TemplateIcon = template.icon;
+
+          return (
+            <div
+              key={template.service}
+              className={`p-5 rounded-2xl border transition-all ${
+                configured
+                  ? "bg-green-500/5 border-green-500/20"
+                  : "bg-card border-border/50 hover:border-primary/30"
+              }`}
+            >
+              <div className="flex items-start gap-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${
+                  configured ? "bg-green-500/10" : "bg-primary/10"
+                }`}>
+                  <TemplateIcon className={`w-6 h-6 ${configured ? "text-green-500" : "text-primary"}`} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-bold text-sm">{template.label}</h3>
+                    {configured && (
+                      <Badge variant="default" className="text-[10px] bg-green-500/10 text-green-500 border-green-500/20">
+                        <CheckCircle className="w-3 h-3 ml-1" /> مُفعّل
+                      </Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-3">{template.notes}</p>
+                  <p className="text-xs text-muted-foreground mb-3 font-mono" dir="ltr">{template.base_url}</p>
+
+                  {/* Key inputs */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    {template.requiredKeys.map((rk) => {
+                      const existingKey = keys.find(
+                        (k) => k.service === template.service && k.key_name === rk.key_name && k.is_active
+                      );
+                      return (
+                        <div key={rk.key_name} className="space-y-1">
+                          <Label className="text-xs flex items-center gap-1">
+                            <Key className="w-3 h-3" /> {rk.key_name}
+                            {existingKey && <CheckCircle className="w-3 h-3 text-green-500" />}
+                          </Label>
+                          <Input
+                            type="password"
+                            className="bg-muted/30 text-xs font-mono h-8"
+                            dir="ltr"
+                            placeholder={existingKey ? "••••••••" : rk.placeholder}
+                            value={setupValues[template.service]?.[rk.key_name] || ""}
+                            onChange={(e) =>
+                              setSetupValues((prev) => ({
+                                ...prev,
+                                [template.service]: {
+                                  ...(prev[template.service] || {}),
+                                  [rk.key_name]: e.target.value,
+                                },
+                              }))
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Test result */}
+                  {testResult && (
+                    <div className={`text-xs px-3 py-2 rounded-lg mb-3 flex items-center gap-2 ${
+                      testResult.ok ? "bg-green-500/10 text-green-600" : "bg-destructive/10 text-destructive"
+                    }`}>
+                      {testResult.ok ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                      {testResult.message}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="gold"
+                      size="sm"
+                      className="text-xs"
+                      onClick={() => handleQuickSetup(template)}
+                      disabled={saving === template.service}
+                    >
+                      {saving === template.service ? (
+                        <><Loader2 className="w-3 h-3 ml-1 animate-spin" /> جاري التفعيل...</>
+                      ) : configured ? (
+                        <><RefreshCw className="w-3 h-3 ml-1" /> تحديث المفاتيح</>
+                      ) : (
+                        <><Zap className="w-3 h-3 ml-1" /> تفعيل</>
+                      )}
+                    </Button>
+                    {configured && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => handleTestConnection(template.service)}
+                        disabled={testing === template.service}
+                      >
+                        {testing === template.service ? (
+                          <><Loader2 className="w-3 h-3 ml-1 animate-spin" /> فحص...</>
+                        ) : (
+                          <><Shield className="w-3 h-3 ml-1" /> فحص الاتصال</>
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -318,8 +622,11 @@ export default function AdminIntegrations() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="endpoints" className="space-y-4" dir="rtl">
+      <Tabs defaultValue="quick-setup" className="space-y-4" dir="rtl">
         <TabsList className="bg-muted/30 p-1">
+          <TabsTrigger value="quick-setup" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary gap-2">
+            <Zap className="w-4 h-4" /> الإعداد السريع
+          </TabsTrigger>
           <TabsTrigger value="endpoints" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary gap-2">
             <Link2 className="w-4 h-4" /> روابط الخدمات ({endpoints.length})
           </TabsTrigger>
@@ -327,6 +634,16 @@ export default function AdminIntegrations() {
             <Key className="w-4 h-4" /> مفاتيح APIs ({keys.length})
           </TabsTrigger>
         </TabsList>
+
+        {/* ─── Quick Setup Tab ─── */}
+        <TabsContent value="quick-setup" className="space-y-6">
+          <QuickSetupPanel
+            endpoints={endpoints}
+            keys={keys}
+            onRefresh={() => { fetchEndpoints(); fetchKeys(); }}
+            toast={toast}
+          />
+        </TabsContent>
 
         {/* ─── Endpoints Tab ─── */}
         <TabsContent value="endpoints" className="space-y-4">
