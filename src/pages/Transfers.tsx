@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ArrowRightLeft, Search, Loader2, Clock, Users, MapPin, Car, CheckCircle, AlertCircle, Luggage } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import BookingStepper from "@/components/ui/BookingStepper";
@@ -48,6 +49,8 @@ export default function Transfers() {
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
   const [dateTime, setDateTime] = useState("");
+  const [transferDate, setTransferDate] = useState("");
+  const [transferTime, setTransferTime] = useState("10:00");
   const [passengers, setPassengers] = useState(2);
   const [transferType, setTransferType] = useState("");
   const [searching, setSearching] = useState(false);
@@ -74,7 +77,7 @@ export default function Transfers() {
     setOffers([]);
 
     const startCode = resolveIata(fromCity);
-    if (!startCode || !dateTime) {
+    if (!startCode || !transferDate) {
       toast({ title: "بيانات ناقصة", description: "يرجى تحديد موقع الانطلاق والتاريخ", variant: "destructive" });
       return;
     }
@@ -83,7 +86,7 @@ export default function Transfers() {
     try {
       const params: TransferSearchParams = {
         startLocationCode: startCode,
-        startDateTime: dateTime,
+        startDateTime: `${transferDate}T${transferTime || "10:00"}`,
         passengers,
         currency: "SAR",
       };
@@ -190,8 +193,14 @@ export default function Transfers() {
             </div>
             <div className="grid md:grid-cols-3 gap-4 mb-4">
               <div>
-                <label className="text-sm text-muted-foreground block mb-1.5">تاريخ ووقت الرحلة</label>
-                <Input type="datetime-local" value={dateTime} onChange={(e) => setDateTime(e.target.value)} className="bg-muted/20" required />
+                <label className="text-sm text-muted-foreground block mb-1.5">تاريخ الرحلة</label>
+                <div className="bg-muted/20 border border-border rounded-lg h-10 px-3 flex items-center">
+                  <DatePickerField value={transferDate} onChange={setTransferDate} placeholder="اختر التاريخ" minDate={new Date()} />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-muted-foreground block mb-1.5">وقت الرحلة</label>
+                <Input type="time" value={transferTime} onChange={(e) => setTransferTime(e.target.value)} className="bg-muted/20" required />
               </div>
               <div>
                 <label className="text-sm text-muted-foreground block mb-1.5">عدد الركاب</label>

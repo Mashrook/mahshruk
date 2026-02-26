@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Search, Star, MapPin, Clock, Users, Filter, Calendar, Sparkles, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CityAutocomplete from "@/components/search/CityAutocomplete";
@@ -150,7 +151,9 @@ export default function Activities() {
             <CityAutocomplete value={destination} onChange={setDestination} placeholder="اختر المدينة" label="المدينة" />
             <div>
               <label className="text-xs text-muted-foreground block mb-1 text-right">تاريخ الجولة</label>
-              <Input type="date" value={tourDate} onChange={(e) => setTourDate(e.target.value)} className="bg-muted/30 h-10" />
+              <div className="bg-muted/30 border border-border rounded-lg h-10 px-3 flex items-center">
+                <DatePickerField value={tourDate} onChange={setTourDate} placeholder="اختر التاريخ" minDate={new Date()} />
+              </div>
             </div>
             <div>
               <label className="text-xs text-muted-foreground block mb-1 text-right">عدد الأشخاص</label>

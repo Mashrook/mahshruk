@@ -44,12 +44,12 @@
 	<string>التطبيق يحتاج الوصول إلى الكاميرا لالتقاط صور المستندات</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>التطبيق يستخدم Face ID لتسجيل الدخول الآمن</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>التطبيق يحتاج الوصول إلى موقعك لعرض وجهات السفر القريبة</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>التطبيق يحتاج الوصول إلى الميكروفون للمكالمات الصوتية</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>التطبيق يحتاج الوصول إلى مكتبة الصور لرفع المستندات والوسائط</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>التطبيق يحتاج الوصول إلى موقعك لعرض وجهات السفر القريبة</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -58,18 +58,18 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<key>UIRequiresFullScreen</key>
+	<true/>
+	<key>UIStatusBarHidden</key>
+	<true/>
+	<key>UIStatusBarStyle</key>
+	<string></string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
-		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>

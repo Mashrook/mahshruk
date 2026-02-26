@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Car, Star, MapPin, Users, Fuel, Settings2, Search, Loader2, Clock, ArrowRightLeft, DollarSign, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Badge } from "@/components/ui/badge";
 import CityAutocomplete from "@/components/search/CityAutocomplete";
 import { searchTransfers, TransferOffer, getTransferTypeName, getVehicleName, formatDuration } from "@/lib/amadeusClient";
@@ -85,7 +86,9 @@ export default function Cars() {
             <CityAutocomplete value={destination} onChange={setDestination} placeholder="الوجهة (اختياري)" label="الوجهة" />
             <div>
               <label className="text-sm text-muted-foreground block mb-1">تاريخ الاستلام</label>
-              <Input type="date" value={pickupDate} onChange={(e) => setPickupDate(e.target.value)} className="bg-muted/30" />
+              <div className="bg-muted/30 border border-border rounded-lg h-10 px-3 flex items-center">
+                <DatePickerField value={pickupDate} onChange={setPickupDate} placeholder="اختر التاريخ" minDate={new Date()} />
+              </div>
             </div>
             <div>
               <label className="text-sm text-muted-foreground block mb-1">عدد الركاب</label>

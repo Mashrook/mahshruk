@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { hotels } from "@/data/hotelsData";
@@ -187,11 +188,15 @@ export default function HotelDetails() {
               <div className="space-y-2 mb-4">
                 <div>
                   <label className="text-[10px] text-muted-foreground block mb-0.5 text-right">تاريخ الدخول</label>
-                  <Input type="date" value={checkInDate} onChange={(e) => setCheckInDate(e.target.value)} className="bg-muted/30 h-9 text-sm" />
+                  <div className="bg-muted/30 border border-border rounded-lg h-9 px-2 flex items-center">
+                    <DatePickerField value={checkInDate} onChange={setCheckInDate} placeholder="تاريخ الدخول" minDate={new Date()} className="text-sm" />
+                  </div>
                 </div>
                 <div>
                   <label className="text-[10px] text-muted-foreground block mb-0.5 text-right">تاريخ الخروج</label>
-                  <Input type="date" value={checkOutDate} onChange={(e) => setCheckOutDate(e.target.value)} className="bg-muted/30 h-9 text-sm" />
+                  <div className="bg-muted/30 border border-border rounded-lg h-9 px-2 flex items-center">
+                    <DatePickerField value={checkOutDate} onChange={setCheckOutDate} placeholder="تاريخ الخروج" minDate={checkInDate ? new Date(checkInDate) : new Date()} className="text-sm" />
+                  </div>
                 </div>
               </div>
 

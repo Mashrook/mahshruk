@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import {
   Plane, Search, Clock, RefreshCw, Loader2, ArrowLeft, Filter,
   Hotel, Car, Compass, Luggage, ChevronDown, AlertCircle, CheckCircle2,
@@ -216,17 +217,14 @@ export default function Flights() {
               <div className="grid md:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">تاريخ المغادرة</label>
-                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <Input type="date" value={departDate} onChange={(e) => setDepartDate(e.target.value)} className="bg-transparent border-0 p-0 h-auto shadow-none" required />
+                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-0 flex items-center gap-2">
+                    <DatePickerField value={departDate} onChange={setDepartDate} placeholder="اختر تاريخ المغادرة" required minDate={new Date()} />
                   </div>
                 </div>
                 <div>
                   <label className="text-sm text-muted-foreground block mb-1.5 text-right">تاريخ العودة</label>
-                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-2.5 flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <Input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)}
-                      className="bg-transparent border-0 p-0 h-auto shadow-none" disabled={tripType === "oneway"} />
+                  <div className="bg-muted/50 border border-border rounded-xl px-4 py-0 flex items-center gap-2">
+                    <DatePickerField value={returnDate} onChange={setReturnDate} placeholder="اختر تاريخ العودة" disabled={tripType === "oneway"} minDate={departDate ? new Date(departDate) : new Date()} />
                   </div>
                 </div>
               </div>

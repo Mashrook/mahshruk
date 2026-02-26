@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -236,11 +237,15 @@ export default function Hotels() {
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1 text-right">تاريخ الوصول</label>
-                <Input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)} className="bg-muted/30 h-10" required />
+                <div className="bg-muted/30 border border-border rounded-lg h-10 px-3 flex items-center">
+                  <DatePickerField value={checkIn} onChange={setCheckIn} placeholder="تاريخ الوصول" required minDate={new Date()} />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1 text-right">تاريخ المغادرة</label>
-                <Input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)} className="bg-muted/30 h-10" required />
+                <div className="bg-muted/30 border border-border rounded-lg h-10 px-3 flex items-center">
+                  <DatePickerField value={checkOut} onChange={setCheckOut} placeholder="تاريخ المغادرة" required minDate={checkIn ? new Date(checkIn) : new Date()} />
+                </div>
               </div>
               <div>
                 <label className="text-xs text-muted-foreground block mb-1 text-right">الضيوف</label>
